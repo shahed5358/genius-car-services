@@ -1,0 +1,11 @@
+.register-form{
+    margin:0 auto;
+    width:50%;
+}
+
+.register-form input{
+    display: block;
+    height: 50px;
+    font-size :18px;
+    margin-bottom:15px;
+}
