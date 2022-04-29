@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { useCreateUserWithEmailAndPassword, useUpdateProfile } from 'react-firebase-hooks/auth';
 import './Register.css';
 import auth from '../../../firebase.init';
 import SocialLogin from '../SocialLogin/SocialLogin';
+import Loading from '../../Shared/Loading/Loading';
 
 const Register = () => {
     const [agree, setAgree] = useState(false);
@@ -12,7 +13,9 @@ const Register = () => {
         user,
         loading,
         error,
-      ] = useCreateUserWithEmailAndPassword(auth);
+      ] = useCreateUserWithEmailAndPassword(auth, {sendEmailVerification: true});
+
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth); 
 
     const navigate = useNavigate();
 
@@ -20,19 +23,24 @@ const Register = () => {
         navigate('/login');
     }
 
+    if(loading || updating){
+        return <Loading></Loading>
+      }
+
     if(user){
-        navigate('/home');
+        console.log('user', user);
     }
-    const handleRegister = event => {
+    const handleRegister = async (event) => {
         event.preventDefault();
         const name = event.target.name.value;
         const email = event.target.email.value;
         const password = event.target.password.value;
         // const agree = event.target.terms.value;
 
-        if(agree){
-            createUserWithEmailAndPassword(email, password)
-        }        
+        await createUserWithEmailAndPassword(email, password);
+        await updateProfile({ displayName: name });
+        console.log('Updated profile');     
+        navigate('/home');
     }
     return (
         <div className="register-form">
@@ -42,8 +50,8 @@ const Register = () => {
                 <input type="email" name="email" placeholder="Email Address" required />
                 <input type="password" name="password" placeholder="Your Password" required/>
                 <input onClick={() => setAgree(!agree)} type="checkbox" name="terms" id="terms"/> 
-                {/* <label className={agree ? 'ps-2' : 'ps-2 text-danger'} htmlfor="terms">Accept Genius Car Terms and Conditions</label> */}
-                <label className={`ps-2 ${agree ? '': 'text-danger'}`} htmlfor="terms">Accept Genius Car Terms and Conditions</label>
+                {/* <label className={agree ? 'ps-2' : 'ps-2 text-danger'} htmlFor="terms">Accept Genius Car Terms and Conditions</label> */}
+                <label className={`ps-2 ${agree ? '': 'text-danger'}`} htmlFor="terms">Accept Genius Car Terms and Conditions</label>
                 <input 
                 disabled={!agree}
                 className="w-50 mx-auto btn btn-primary mt-2"
